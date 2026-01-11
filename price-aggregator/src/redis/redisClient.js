@@ -3,9 +3,14 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const redisClient = new Redis(process.env.REDIS_URL);
+// Publisher client
+export const redisPublisher = new Redis(process.env.REDIS_URL);
 
-redisClient.on("connect", () => console.log("Redis Connected to Backend"));
-redisClient.on("error", (err) => console.error("Redis Error:", err));
+// Subscriber client (not required here if you don’t subscribe)
+export const redisSubscriber = new Redis(process.env.REDIS_URL);
 
-export default redisClient;   // ✅ Default export
+redisPublisher.on("connect", () => console.log("Redis Publisher Connected"));
+redisPublisher.on("error", (err) => console.error("Redis Publisher Error:", err));
+
+redisSubscriber.on("connect", () => console.log("Redis Subscriber Connected"));
+redisSubscriber.on("error", (err) => console.error("Redis Subscriber Error:", err));

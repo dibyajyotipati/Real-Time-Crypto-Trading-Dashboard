@@ -4,17 +4,25 @@ export default function PriceTicker() {
   const [btcPrice, setBtcPrice] = useState(null);
 
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:5000"); // backend websocket port
+    const ws = new WebSocket("ws://localhost:5000/ws");
 
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.symbol === "BTCUSDT") {
-        setBtcPrice(data.price);
+    ws.onopen = () => console.log("WebSocket Connected");
+
+    ws.onmessage = (msg) => {
+      console.log("msg:", msg.data);
+      try {
+        const data = JSON.parse(msg.data);
+
+        if (data.symbol === "BTCUSDT") {
+          setBtcPrice(Number(data.price).toFixed(2));
+        }
+      } catch (err) {
+        console.error("JSON parse error:", err);
       }
     };
 
-    ws.onerror = (err) => console.error("WebSocket error:", err);
-
+    ws.onerror = (err) => console.error("WebSocket Error:", err);
+    
     return () => ws.close();
   }, []);
 

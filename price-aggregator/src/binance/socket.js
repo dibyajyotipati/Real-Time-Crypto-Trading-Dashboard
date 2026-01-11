@@ -1,19 +1,17 @@
 import WebSocket from "ws";
+import { redisPublisher } from "../redis/redisClient.js";
 
-export const connectBinanceWS = (symbol, onMessage) => {
-  const ws = new WebSocket(`wss://stream.binance.com:9443/ws/${symbol}@trade`);
+const ws = new WebSocket("wss://stream.binance.com:9443/ws/btcusdt@ticker");
 
-  ws.on("open", () => console.log(`🔗 Connected to Binance for ${symbol}`));
+ws.on("message", async (data) => {
+  const json = JSON.parse(data);
 
-  ws.on("message", (data) => {
-    const parsed = JSON.parse(data);
-    onMessage(parsed.p); // price from trade message
-  });
+  const priceData = {
+    symbol: json.s,
+    price: json.c
+  };
 
-  ws.on("close", () => {
-    console.log("❌ Binance WebSocket closed. Reconnecting...");
-    setTimeout(() => connectBinanceWS(symbol, onMessage), 3000);
-  });
+  console.log("Binance Stream Price:", priceData.price);
 
-  ws.on("error", (err) => console.error("WS Error:", err));
-};
+  await redisPublisher.publish("btc_price", JSON.stringify(priceData));
+});

@@ -4,26 +4,39 @@ import dotenv from "dotenv";
 import mongoose from "mongoose";
 import authRoutes from "./routes/authRoutes.js";
 import priceRoutes from "./routes/priceRoutes.js";
-
 import http from "http";
 import { setupWebSocket } from "./services/websocket.js";
 
+// Load env first
 dotenv.config();
 
+// Create express app
 const app = express();
+
+// Middleware
 app.use(express.json());
 app.use(cors());
-
-app.use("/api/auth", authRoutes);
 app.use("/api/price", priceRoutes);
+app.use("/api/auth", authRoutes);
 
-app.get("/", (req, res) => res.send("Server running"));
+// Test route
+app.get("/", (req, res) => {
+  res.send("Server is running...");
+});
 
+// Create server AFTER app is defined
 const server = http.createServer(app);
+
+// Setup websocket on this server
 setupWebSocket(server);
 
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB Connected"))
-  .catch(err => console.error(err));
+// Start server
+server.listen(5000, () => {
+  console.log("Server & WebSocket running on port 5000");
+});
 
-server.listen(5000, () => console.log("Server running on port 5000"));
+// MongoDB connect
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB Connected Successfully"))
+  .catch((err) => console.error("MongoDB Error:", err));
