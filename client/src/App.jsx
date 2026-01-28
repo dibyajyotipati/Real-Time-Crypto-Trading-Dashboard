@@ -18,6 +18,7 @@ function App() {
       .catch(() => setPrice("Error"));
   }, [token]);
 
+  // ✅ correct condition
   if (!token) {
     return <Login onLogin={() => setToken(localStorage.getItem("token"))} />;
   }
