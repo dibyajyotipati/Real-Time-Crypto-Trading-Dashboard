@@ -14,19 +14,23 @@ function App() {
       },
     })
       .then((res) => res.json())
-      .then((data) => setPrice(data.price))
+      .then((data) => {
+        console.log("API DATA:", data);
+        if (data.price) setPrice(data.price);
+        else setPrice("No price");
+      })
       .catch(() => setPrice("Error"));
   }, [token]);
 
-  // ✅ correct condition
   if (!token) {
-    return <Login onLogin={() => setToken(localStorage.getItem("token"))} />;
+    return (
+      <Login onLogin={() => setToken(localStorage.getItem("token"))} />
+    );
   }
 
   return (
     <div className="p-6">
       <h1 className="text-4xl font-bold mb-4">Crypto Dashboard</h1>
-
       <div className="p-4 shadow bg-white rounded-lg w-64">
         <h2 className="font-bold text-lg">BTC / USDT Price:</h2>
         <p className="text-green-600 text-2xl">${price}</p>

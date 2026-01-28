@@ -1,4 +1,4 @@
-import  redisClient  from "../config/redisClient.js";
+import redisClient from "../config/redisClient.js";
 
 export const getBTCPrice = async (req, res) => {
   try {
