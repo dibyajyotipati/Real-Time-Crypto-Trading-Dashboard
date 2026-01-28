@@ -4,7 +4,7 @@ import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// Protected endpoint
+// Protected price route
 router.get("/protected", protect, getBTCPrice);
 
 export default router;
