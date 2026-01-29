@@ -4,6 +4,8 @@ import dotenv from "dotenv";
 import mongoose from "mongoose";
 import authRoutes from "./routes/authRoutes.js";
 import priceRoutes from "./routes/priceRoutes.js";
+import candleRoutes from "./routes/candleRoutes.js";
+
 import http from "http";
 import { setupWebSocket } from "./services/websocket.js";
 
@@ -17,6 +19,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 app.use("/api/price", priceRoutes);
+app.use("/api/candle", candleRoutes);
 app.use("/api/auth", authRoutes);
 
 // Test route

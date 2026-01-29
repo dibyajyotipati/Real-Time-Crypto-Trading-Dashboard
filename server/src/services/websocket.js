@@ -8,26 +8,29 @@ export function setupWebSocket(server) {
     if (req.url === "/ws") {
       wss.handleUpgrade(req, socket, head, (ws) => {
         console.log("Client connected to WebSocket");
-        ws.send(JSON.stringify({ message: "connected" }));
+        ws.send(JSON.stringify({ type: "connected" }));
         wss.emit("connection", ws, req);
       });
     }
   });
 
-  // Dedicated subscriber
+  // Redis subscriber
   const subscriber = redisClient.duplicate();
 
   subscriber.subscribe("price_updates", (err) => {
-    if (err) console.error("Redis subscribe error:", err);
+    if (err) console.error("Subscribe error:", err);
     else console.log("Subscribed to price_updates");
   });
 
   subscriber.on("message", (channel, message) => {
-    console.log("Forwarding to clients:", message);
+    const data = JSON.parse(message);
 
     wss.clients.forEach((client) => {
       if (client.readyState === 1) {
-        client.send(message);
+        client.send(JSON.stringify({
+          type: "price",
+          payload: data
+        }));
       }
     });
   });
