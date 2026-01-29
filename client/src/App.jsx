@@ -3,12 +3,16 @@ import Login from "./pages/Login";
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem("token"));
-  const [price, setPrice] = useState("Loading...");
+
+  const [prices, setPrices] = useState({
+    BTCUSDT: "Loading...",
+    ETHUSDT: "Loading...",
+    SOLUSDT: "Loading..."
+  });
 
   useEffect(() => {
     if (!token) return;
 
-    // 🔥 WebSocket instead of fetch
     const ws = new WebSocket("ws://localhost:5000/ws");
 
     ws.onopen = () => {
@@ -19,18 +23,17 @@ function App() {
       const data = JSON.parse(event.data);
       console.log("WS DATA:", data);
 
-      if (data.price) {
-        setPrice(data.price);
+      // ✅ update only that coin
+      if (data.symbol && data.price) {
+        setPrices((prev) => ({
+          ...prev,
+          [data.symbol]: data.price
+        }));
       }
     };
 
-    ws.onerror = (err) => {
-      console.error("WebSocket error:", err);
-    };
-
-    ws.onclose = () => {
-      console.log("WebSocket closed");
-    };
+    ws.onerror = (err) => console.error("WebSocket error:", err);
+    ws.onclose = () => console.log("WebSocket closed");
 
     return () => ws.close();
   }, [token]);
@@ -43,11 +46,15 @@ function App() {
     <div className="p-6">
       <h1 className="text-4xl font-bold mb-4">Crypto Dashboard</h1>
 
-      <div className="p-4 shadow bg-white rounded-lg w-64">
-        <h2 className="font-bold text-lg">BTC / USDT Price:</h2>
-        <p className="text-green-600 text-2xl">
-          ${price}
-        </p>
+      <div>
+        <h2>BTC / USDT</h2>
+        <p>{prices.BTCUSDT}</p>
+
+        <h2>ETH / USDT</h2>
+        <p>{prices.ETHUSDT}</p>
+
+        <h2>SOL / USDT</h2>
+        <p>{prices.SOLUSDT}</p>
       </div>
     </div>
   );
