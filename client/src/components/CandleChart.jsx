@@ -6,29 +6,42 @@ export default function CandleChart({ data }) {
   const chartRef = useRef(null);
   const seriesRef = useRef(null);
 
-  // Create chart ONCE
+  // Create chart once
   useEffect(() => {
+    if (!containerRef.current) return;
+
     chartRef.current = createChart(containerRef.current, {
-      width: 700,
+      width: 800,
       height: 400,
       layout: {
         background: { color: "#ffffff" },
         textColor: "#000",
       },
-      timeScale: { timeVisible: true },
+      grid: {
+        vertLines: { color: "#eee" },
+        horzLines: { color: "#eee" },
+      },
+      timeScale: {
+        timeVisible: true,
+        secondsVisible: false,
+      },
     });
 
     seriesRef.current = chartRef.current.addSeries(CandlestickSeries);
 
-    return () => chartRef.current.remove();
+    return () => {
+      if (chartRef.current) {
+        chartRef.current.remove();
+      }
+    };
   }, []);
 
-  // Update candles
+  // Update data when candles change
   useEffect(() => {
-    if (!data || data.length === 0 || !seriesRef.current) return;
+    // 🔴 Prevent crash if API returns object / null / undefined
+    if (!Array.isArray(data) || data.length === 0 || !seriesRef.current) return;
 
-    // ✅ 1. Convert + sort
-    const sorted = [...data]
+    const formatted = data
       .map((c) => ({
         time: Math.floor(new Date(c.timestamp).getTime() / 1000),
         open: Number(c.open),
@@ -36,21 +49,9 @@ export default function CandleChart({ data }) {
         low: Number(c.low),
         close: Number(c.close),
       }))
-      .sort((a, b) => a.time - b.time);
+      .sort((a, b) => a.time - b.time); // keep candles ordered
 
-    // ✅ 2. Remove duplicate timestamps
-    const unique = [];
-    const seen = new Set();
-
-    for (const c of sorted) {
-      if (!seen.has(c.time)) {
-        seen.add(c.time);
-        unique.push(c);
-      }
-    }
-
-    // ✅ 3. Send to chart
-    seriesRef.current.setData(unique);
+    seriesRef.current.setData(formatted);
   }, [data]);
 
   return <div ref={containerRef} />;
