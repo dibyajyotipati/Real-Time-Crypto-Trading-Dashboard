@@ -1,0 +1,16 @@
+{
+  "name": "crypto-trading-dashboard",
+  "version": "1.0.0",
+  "description": "Real-Time Crypto Trading Dashboard with AI predictions",
+  "scripts": {
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install && cd ../price-aggregator && npm install && cd ../ai-predictor && npm install",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm start",
+    "dev:aggregator": "cd price-aggregator && npm run dev",
+    "dev:predictor": "cd ai-predictor && npm run dev",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:aggregator\" \"npm run dev:predictor\" \"npm run dev:frontend\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

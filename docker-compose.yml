@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: crypto_mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - crypto_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: crypto_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - crypto_network
+
+  price-aggregator:
+    build: ./price-aggregator
+    container_name: crypto_price_aggregator
+    ports:
+      - "5001:5001"
+    environment:
+      - PORT=5001
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+    networks:
+      - crypto_network
+    restart: unless-stopped
+
+  ai-predictor:
+    build: ./ai-predictor
+    container_name: crypto_ai_predictor
+    ports:
+      - "5002:5002"
+    environment:
+      - PORT=5002
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    networks:
+      - crypto_network
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    container_name: crypto_backend
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - MONGO_URI=mongodb://mongodb:27017/cryptotrading
+      - JWT_SECRET=${JWT_SECRET}
+      - REDIS_URL=redis://redis:6379
+      - PRICE_AGGREGATOR_URL=http://price-aggregator:5001
+      - AI_PREDICTOR_URL=http://ai-predictor:5002
+    depends_on:
+      - mongodb
+      - redis
+      - price-aggregator
+      - ai-predictor
+    networks:
+      - crypto_network
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: crypto_frontend
+    ports:
+      - "3000:80"
+    environment:
+      - REACT_APP_API_URL=http://localhost:5000/api
+      - REACT_APP_WS_URL=ws://localhost:5001
+    depends_on:
+      - backend
+    networks:
+      - crypto_network
+
+volumes:
+  mongodb_data:
+
+networks:
+  crypto_network:
+    driver: bridge
